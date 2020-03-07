@@ -1,0 +1,22 @@
+{
+  "name": "timecard",
+  "version": "1.0.0",
+  "description": "Timecard for employees charging multiple accounts",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AutomationMusician/timecard.git"
+  },
+  "keywords": [
+    "timecard"
+  ],
+  "author": "Joshua Fishman",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AutomationMusician/timecard/issues"
+  },
+  "homepage": "https://github.com/AutomationMusician/timecard#readme"
+}
