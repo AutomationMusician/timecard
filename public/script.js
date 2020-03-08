@@ -1,28 +1,3 @@
-
-let chargeNumbers = ["Charge #1", "Charge #2", "Charge #3"];
-let rows = [
-    {
-        start: "07:00",
-        end: "09:00",
-        charge: 0
-    },
-    {
-        start: "10:00",
-        end: "12:00",
-        charge: 1
-    },
-    {
-        start: "12:00",
-        end: "12:30",
-        charge: -1
-    },
-    {
-        start: "12:30",
-        end: "18:30",
-        charge: 2
-    }
-];
-
 function createHead() {
     const table = document.getElementById("table");
     const thead = document.createElement("thead");
@@ -53,7 +28,6 @@ function createHead() {
     thead.append(theadRow);
     table.append(thead);
 }
-
 
 function createBody() {
     const table = document.getElementById("table");
@@ -125,31 +99,37 @@ function createFooter() {
     buttonsTd.colSpan = 4 + chargeNumbers.length;
     const buttonsUl = document.createElement("ul");
 
-    let li, button;
+    const buttons = [
+        {
+            text: "Add Row",
+            onClick: addRow
+        },
+        {
+            text: "Add Column",
+            onClick: addColumn
+        },
+        // {
+        //     text: "Load",
+        //     onClick: load
+        // },
+        {
+            text: "Save",
+            onClick: save
+        },
+        {
+            text: "Calculate",
+            onClick: calculate
+        }
+    ];
 
-    // Add row
-    li = document.createElement("li");
-    button = document.createElement("button");
-    button.textContent = "Add Row";
-    button.onclick = function() { addRow() }; 
-    li.append(button);
-    buttonsUl.append(li);
-
-    // Add col
-    li = document.createElement("li");
-    button = document.createElement("button");
-    button.textContent = "Add Column";
-    button.onclick = function() { addColumn() }; 
-    li.append(button);
-    buttonsUl.append(li);
-
-    // calculate
-    li = document.createElement("li");
-    button = document.createElement("button");
-    button.textContent = "Calculate";
-    button.onclick = function() { calculate() }; 
-    li.append(button);
-    buttonsUl.append(li);
+    for (let i=0; i<buttons.length; i++) {
+        const li = document.createElement("li");
+        const button = document.createElement("button");
+        button.textContent = buttons[i].text;
+        button.onclick = buttons[i].onClick; 
+        li.append(button);
+        buttonsUl.append(li);
+    }
 
     buttonsTd.append(buttonsUl);
     buttonsRow.append(buttonsTd);
@@ -163,6 +143,14 @@ function createTable() {
     createBody();
     createFooter();
     calculate();
+}
+
+function blankRow() {
+    return {
+        start: "",
+        end: "",
+        charge: -1
+    };
 }
 
 function round2Decimals(number) {
@@ -186,12 +174,7 @@ function deleteColumn(colNum) {
 function addRow() {
     cacheState();
     document.getElementById("table").innerHTML = "";
-    const rowData = {
-        start: "",
-        end: "",
-        charge: -1
-    }
-    rows.push(rowData);
+    rows.push(blankRow());
     createTable();
 }
 
@@ -222,6 +205,47 @@ function cacheState() {
     // replace global variables
     rows = rowsTemp;
     chargeNumbers = chargeNumsTemp;
+}
+
+async function load() {
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }
+    const response = await fetch('/load', options);
+    const result = await response.json();
+    console.log(result);
+
+    if (result.chargeNumbers == null) {
+        chargeNumbers = ["Charge #1", "Charge #2", "Charge #3"];
+    } else {
+        chargeNumbers = result.chargeNumbers;
+    }
+
+    if (result.rows == null) {
+        rows = [
+            blankRow(),
+            blankRow(),
+            blankRow()
+        ];
+    } else {
+        rows = result.rows;
+    }
+}
+
+async function save() {
+    cacheState();
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ chargeNumbers, rows })
+    };
+    const response = await fetch('/save', options);
+    return await response.json();
 }
 
 function createTimeField(fieldStr, index, value) {
@@ -282,4 +306,7 @@ function calculate() {
     totalHoursElem.textContent = round2Decimals(totalHours);
 }
 
-createTable();
+let chargeNumbers;
+let rows;
+
+load().then(() => {createTable()});
