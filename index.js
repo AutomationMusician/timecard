@@ -1,12 +1,16 @@
 const express = require('express');
+const datastore = require('nedb');
 const fs = require('fs');
 
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log('listening on port ' + PORT));
 app.use(express.static('public'));
 app.use(express.json());
 app.use(express.urlencoded( { extended: true } ));
+
+const usersdb = new datastore('data/users.db');
+usersdb.loadDatabase();
 
 if (!fs.existsSync("data")) {
     fs.mkdirSync("data");
@@ -21,12 +25,21 @@ function getDate() {
 }
 
 app.post('/save', async (request, response) => {
-    fs.writeFile("data/"+getDate()+".json", JSON.stringify(request.body), (err) => {
+    const directory = "data/" + request.body.id + "/";
+    if (!fs.existsSync(directory)) {
+        fs.mkdirSync(directory);
+    }
+
+    const data = {
+        chargeNumbers: request.body.chargeNumbers,
+        rows: request.body.rows
+    };
+    fs.writeFile(directory + getDate() + ".json", JSON.stringify(data), (err) => {
         if (err) { 
             throw err;
         } else {
             console.log(getDate()+".json file is created successfully.");
-            fs.writeFile("data/chargeNumbers.json", JSON.stringify(request.body.chargeNumbers), (err) => {
+            fs.writeFile(directory + "chargeNumbers.json", JSON.stringify(request.body.chargeNumbers), (err) => {
                 if (err) { 
                     throw err;
                 } else {
@@ -41,11 +54,12 @@ app.post('/save', async (request, response) => {
 
 app.post('/load', async (request, response) => {
     let state;
-    if (fs.existsSync("data/"+getDate()+".json")) {
-        const rawdata = fs.readFileSync("data/"+getDate()+".json");
+    const directory = "data/" + request.body.id + "/";
+    if (fs.existsSync(directory + getDate() + ".json")) {
+        const rawdata = fs.readFileSync(directory + getDate() + ".json");
         state = JSON.parse(rawdata);
-    } else if (fs.existsSync("data/chargeNumbers.json")) {
-        const rawdata = fs.readFileSync("data/chargeNumbers.json");
+    } else if (fs.existsSync(directory + "chargeNumbers.json")) {
+        const rawdata = fs.readFileSync(directory + "chargeNumbers.json");
         const chargeNumbers = JSON.parse(rawdata);
         state = { 
             "chargeNumbers": chargeNumbers,
@@ -58,4 +72,22 @@ app.post('/load', async (request, response) => {
         };
     }
     response.json(state);
+});
+
+app.post('/createUser', async (request, response) => {
+    usersdb.insert(request.body, (err, data) => {
+        if (err) throw err;
+        response.redirect("/index.html?id=" + data._id);
+    });
+});
+
+app.post('/getUser', async (request, response) => {
+    usersdb.findOne(request.body, (err, data) => {
+        if (err) {
+            console.log(err);
+            response.json({success: false});
+        } else {
+            response.json({success: true, name: data.name});
+        }
+    });
 });

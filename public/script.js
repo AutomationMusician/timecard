@@ -1,3 +1,54 @@
+let chargeNumbers;
+let rows;
+let id;
+let name;
+
+async function main() {
+    await getUserData();
+    await load();
+    createHeader();
+    createTable();    
+}
+
+function getUrlVars() {
+    const vars = {};
+    window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+        vars[key] = value;
+    });
+    return vars;
+}
+
+async function getUserData() {
+    id = getUrlVars()["id"];
+    if (id != null) {
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ _id: id })
+        };
+        const response = await fetch('/getUser', options);
+        const json = await response.json();
+        console.log(json);
+        if (json.success)
+            name = json.name;
+        else
+            window.location.replace("/createUser.html");
+    }
+    else
+    {
+        window.location.replace("/createUser.html");
+    }
+}
+
+function createHeader() {
+    const header = document.getElementById("header");
+    header.textContent = name + "'s Timecard"
+    const title = document.getElementById("title");
+    title.textContent = name + "'s Timecard"
+}
+
 function createHead() {
     const table = document.getElementById("table");
     const thead = document.createElement("thead");
@@ -212,11 +263,11 @@ async function load() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({ id })
     }
     const response = await fetch('/load', options);
     const result = await response.json();
-    console.log(result);
 
     if (result.chargeNumbers == null) {
         chargeNumbers = ["Charge #1", "Charge #2", "Charge #3"];
@@ -242,7 +293,7 @@ async function save() {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ chargeNumbers, rows })
+        body: JSON.stringify({ id, chargeNumbers, rows })
     };
     const response = await fetch('/save', options);
     return await response.json();
@@ -269,7 +320,6 @@ function hoursDifference(start, end) {
 function getChargeNum(row) {
     for (let index=0; index < chargeNumbers.length; index++) {
         const id = "charge" + row + "," + index;
-        //console.log(id);
         const radioButton = document.getElementById(id);
         if (radioButton.checked) {
             return index;
@@ -306,7 +356,4 @@ function calculate() {
     totalHoursElem.textContent = round2Decimals(totalHours);
 }
 
-let chargeNumbers;
-let rows;
-
-load().then(() => {createTable()});
+main();
