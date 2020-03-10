@@ -217,6 +217,12 @@ function deleteRow(rowNum) {
 
 function deleteColumn(colNum) {
     cacheState();
+    for (let i=0; i<rows.length; i++) {
+        if (rows[i].charge == colNum) 
+            rows[i].charge = -1;
+        else if (rows[i].charge > colNum)
+            rows[i].charge--;
+    }
     chargeNumbers.splice(colNum, 1);
     document.getElementById("table").innerHTML = "";
     createTable();
