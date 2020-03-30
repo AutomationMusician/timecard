@@ -159,10 +159,6 @@ function createFooter() {
             text: "Add Column",
             onClick: addColumn
         },
-        // {
-        //     text: "Load",
-        //     onClick: load
-        // },
         {
             text: "Save",
             onClick: save
@@ -311,9 +307,21 @@ function createTimeField(fieldStr, index, value) {
     input.type = "time"
     input.value = value;
     input.id = fieldStr + index;
+    const nowButton = document.createElement("button");
+    nowButton.onclick = function() { setNow(fieldStr, index) };
+    nowButton.textContent = "now";
     td.append(input);
+    td.append(document.createElement("br"));
+    td.append(nowButton);
 
     return td;
+}
+
+function setNow(fieldStr, index) {
+    const elem = document.getElementById(fieldStr + index);
+    const now = new Date();
+    const time = ("0" + now.getHours()).slice(-2) + ":" + ("0" + now.getMinutes()).slice(-2);
+    elem.value = time;
 }
 
 function hoursDifference(start, end) {
