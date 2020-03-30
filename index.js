@@ -77,7 +77,7 @@ app.post('/load', async (request, response) => {
 app.post('/createUser', async (request, response) => {
     usersdb.insert(request.body, (err, data) => {
         if (err) throw err;
-        response.redirect("/index.html?id=" + data._id);
+        response.redirect("/?id=" + data._id);
     });
 });
 

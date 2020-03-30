@@ -196,7 +196,7 @@ function blankRow() {
     return {
         start: "",
         end: "",
-        charge: -1
+        charge: 0
     };
 }
 
