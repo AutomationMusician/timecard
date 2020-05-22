@@ -7,7 +7,7 @@ async function main() {
     await getUserData();
     await load();
     createHeader();
-    createTable();    
+    createTable();
 }
 
 function getUrlVars() {
@@ -30,7 +30,6 @@ async function getUserData() {
         };
         const response = await fetch('/getUser', options);
         const json = await response.json();
-        console.log(json);
         if (json.success)
             name = json.name;
         else
@@ -47,6 +46,13 @@ function createHeader() {
     header.textContent = name + "'s Timecard"
     const title = document.getElementById("title");
     title.textContent = name + "'s Timecard"
+}
+
+function createTable() {
+    createHead();
+    createBody();
+    createFooter();
+    calculate();
 }
 
 function createHead() {
@@ -162,10 +168,6 @@ function createFooter() {
         {
             text: "Save",
             onClick: save
-        },
-        {
-            text: "Calculate",
-            onClick: calculate
         }
     ];
 
@@ -183,13 +185,6 @@ function createFooter() {
     tbody.append(buttonsRow);
 
     table.append(tbody);
-}
-
-function createTable() {
-    createHead();
-    createBody();
-    createFooter();
-    calculate();
 }
 
 function blankRow() {
@@ -307,6 +302,7 @@ function createTimeField(fieldStr, index, value) {
     input.type = "time"
     input.value = value;
     input.id = fieldStr + index;
+    input.onchange = calculate;
     const nowButton = document.createElement("button");
     nowButton.onclick = function() { setNow(fieldStr, index) };
     nowButton.textContent = "now";
@@ -325,6 +321,8 @@ function setNow(fieldStr, index) {
 }
 
 function hoursDifference(start, end) {
+    if (start === "" || end === "")
+        return 0;
     const timeStart = new Date("01/01/1970 " + start);
     const timeEnd = new Date("01/01/1970 " + end);
     const difference = timeEnd - timeStart;
