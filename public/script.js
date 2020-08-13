@@ -7,6 +7,7 @@ async function main() {
     await getUserData();
     await load();
     createHeader();
+    createWeekView();
     createTable();
 }
 
@@ -46,6 +47,17 @@ function createHeader() {
     header.textContent = name + "'s Timecard"
     const title = document.getElementById("title");
     title.textContent = name + "'s Timecard"
+}
+
+function createWeekView() {
+    const theadContent = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+    theadContent.reverse();
+    const tr = document.getElementById("weekViewHeader");
+    theadContent.forEach(day => {
+        const td = document.createElement("td");
+        td.textContent = day;
+        tr.prepend(td);
+    });
 }
 
 function createTable() {
