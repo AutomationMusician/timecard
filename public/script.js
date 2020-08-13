@@ -110,11 +110,12 @@ function createBody() {
         for (let j=0; j<chargeNumbers.length; j++) {
             const td = document.createElement("td");
             const input = document.createElement("input");
-            input.type = "radio";
+            input.type = "checkbox";
             input.name = "charge" + i;
             input.id = "charge" + i + "," + j;
+            input.onchange = calculate;
             input.value = j;
-            if (j == rows[i].charge)
+            if (rows[i].chargeNumbers.includes(j))
                 input.checked = true;
             td.append(input);
             tr.append(td);
@@ -191,7 +192,7 @@ function blankRow() {
     return {
         start: "",
         end: "",
-        charge: 0
+        chargeNumbers: [ 0 ]
     };
 }
 
@@ -208,11 +209,21 @@ function deleteRow(rowNum) {
 
 function deleteColumn(colNum) {
     cacheState();
-    for (let i=0; i<rows.length; i++) {
-        if (rows[i].charge == colNum) 
-            rows[i].charge = -1;
-        else if (rows[i].charge > colNum)
-            rows[i].charge--;
+    for (let i=0; i<rows.length; i++)
+    {
+        const index = rows[i].chargeNumbers.indexOf(colNum);
+        if (index != -1) // if the row has this chargeNumber checked
+        {
+            // delete the charge number from the list
+            rows[i].chargeNumbers.splice(index, 1);
+        }
+        // iterate over list of charge numbers in this row
+        for (let j=0; j<rows[i].chargeNumbers.length; j++)
+        {
+            // if charge number index is larger than the charge number that was removed, decrement it
+            if (rows[i].chargeNumbers[j] > colNum)
+                rows[i].chargeNumbers[j]--;
+        }
     }
     chargeNumbers.splice(colNum, 1);
     document.getElementById("table").innerHTML = "";
@@ -239,8 +250,8 @@ function cacheState() {
     for (let row=0; row<rows.length; row++) {
         const start = document.getElementById("start" + row).value;
         const end = document.getElementById("end" + row).value;
-        const charge = getChargeNum(row);
-        rowsTemp.push({ start, end, charge });
+        const chargeNumbers = getChargeNums(row);
+        rowsTemp.push({ start, end, chargeNumbers });
     }
 
     // cache chargeNumbers
@@ -285,6 +296,7 @@ async function load() {
 
 async function save() {
     cacheState();
+    calculate();
     const options = {
         method: 'POST',
         headers: {
@@ -329,15 +341,16 @@ function hoursDifference(start, end) {
     return difference/3600000;
 }
 
-function getChargeNum(row) {
+function getChargeNums(row) {
+    const chargeNums = [];
     for (let index=0; index < chargeNumbers.length; index++) {
         const id = "charge" + row + "," + index;
-        const radioButton = document.getElementById(id);
-        if (radioButton.checked) {
-            return index;
+        const checkbox = document.getElementById(id);
+        if (checkbox.checked) {
+            chargeNums.push(index);
         }
     }
-    return -1;
+    return chargeNums;
 }
 
 function calculate() {
@@ -348,15 +361,21 @@ function calculate() {
     for (let row=0; row<rows.length; row++) {
         const start = document.getElementById("start" + row).value;
         const end = document.getElementById("end" + row).value;
-        const total = hoursDifference(start, end);
-        totalHours += total;
+        const time = hoursDifference(start, end);
+        totalHours += time;
 
         const hoursTd = document.getElementById("hours"+row);
-        hoursTd.textContent = round2Decimals(total);
+        hoursTd.textContent = round2Decimals(time);
 
-        const checked = getChargeNum(row);
-        if (checked != -1)
-            chargeNumHours[checked] += total;
+        const checked = getChargeNums(row);
+        if (checked.length != 0)
+        {
+            const timeFraction = time/checked.length;
+            checked.forEach((value) =>
+            {
+                chargeNumHours[value] += timeFraction;
+            });
+        }
     }
     
     for (let index=0; index<chargeNumbers.length; index++) {
