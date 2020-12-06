@@ -24,6 +24,17 @@ function getDate() {
     return yyyy + "-" + mm + "-" + dd;
 }
 
+function getFriday() {
+    const today = new Date();
+    const friday = new Date();
+    const daysUntilFriday = 6 - ((today.getDay() + 1) % 7);
+    friday.setDate(today.getDate() + daysUntilFriday);
+    const dd = String(friday.getDate()).padStart(2, '0');
+    const mm = String(friday.getMonth() + 1).padStart(2, '0'); //January is 0!
+    const yyyy = friday.getFullYear();
+    return yyyy + "-" + mm + "-" + dd;
+}
+
 app.post('/save', async (request, response) => {
     const directory = "data/" + request.body.id + "/";
     if (!fs.existsSync(directory)) {

@@ -12,6 +12,10 @@
             margin-right: auto;
             border-collapse: collapse;
         }
+        #weekView {
+            margin-bottom: 20px;
+        }
+
         td {
             width: 100px;
             height: 50px;
@@ -33,6 +37,13 @@
 
 <body>
     <h1 id="header">Timecard</h1>
+    <table id="weekView">
+        <tr id="weekViewHeader">
+            <td>Total</td>
+            <td>Hours Until 40</td>
+        </tr>
+        <tr id="weekViewBody"></tr>
+    </table>
     <table id="table"></table>
 </body>
 
