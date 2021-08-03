@@ -1,0 +1,14 @@
+version: "3.8"
+services:
+  client:
+    build: ./client
+    image: timecard-client:latest
+    environment:
+      WEB_PORT: ${WEB_PORT}
+    ports:
+      - "${WEB_PORT}:${WEB_PORT}"
+  server:
+    build: ./server
+    image: timecard-server:latest
+  nginx:
+    image: nginx:latest

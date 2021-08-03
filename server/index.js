@@ -3,7 +3,7 @@ const datastore = require('nedb');
 const fs = require('fs');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 80;
 app.listen(PORT, () => console.log('listening on port ' + PORT));
 app.use(express.static('public'));
 app.use(express.json());
@@ -74,7 +74,7 @@ app.post('/load', async (request, response) => {
     response.json(state);
 });
 
-app.post('/createUser', async (request, response) => {
+app.post('/server/register', async (request, response) => {
     usersdb.insert(request.body, (err, data) => {
         if (err) throw err;
         response.redirect("/?id=" + data._id);
