@@ -7,6 +7,11 @@
         h1 {
             text-align: center;
         }
+        input[type=date] {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
         table {
             margin-left: auto;
             margin-right: auto;
@@ -33,6 +38,8 @@
 
 <body>
     <h1 id="header">Timecard</h1>
+    <input type="date" id="date" onchange="onDateChange()"/>
+    <br />
     <table id="table"></table>
 </body>
 

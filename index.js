@@ -16,14 +16,6 @@ if (!fs.existsSync("data")) {
     fs.mkdirSync("data");
 }
 
-function getDate() {
-    const today = new Date();
-    const dd = String(today.getDate()).padStart(2, '0');
-    const mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-    const yyyy = today.getFullYear();
-    return yyyy + "-" + mm + "-" + dd;
-}
-
 app.post('/save', async (request, response) => {
     const directory = "data/" + request.body.id + "/";
     if (!fs.existsSync(directory)) {
@@ -34,12 +26,12 @@ app.post('/save', async (request, response) => {
         chargeNumbers: request.body.chargeNumbers,
         rows: request.body.rows
     };
-    fs.writeFile(directory + getDate() + ".json", JSON.stringify(data), (err) => {
+    fs.writeFile(directory + request.body.date + ".json", JSON.stringify(data, null, 4), (err) => {
         if (err) { 
             throw err;
         } else {
-            console.log(getDate()+".json file is created successfully.");
-            fs.writeFile(directory + "chargeNumbers.json", JSON.stringify(request.body.chargeNumbers), (err) => {
+            console.log(request.body.date + ".json file is created successfully.");
+            fs.writeFile(directory + "chargeNumbers.json", JSON.stringify(request.body.chargeNumbers, null, 4), (err) => {
                 if (err) { 
                     throw err;
                 } else {
@@ -52,11 +44,12 @@ app.post('/save', async (request, response) => {
     
 });
 
-app.post('/load', async (request, response) => {
+app.get('/load/:id/:date', async (request, response) => {
     let state;
-    const directory = "data/" + request.body.id + "/";
-    if (fs.existsSync(directory + getDate() + ".json")) {
-        const rawdata = fs.readFileSync(directory + getDate() + ".json");
+    const directory = "data/" + request.params.id + "/";
+    const currentDateFile = directory + request.params.date + ".json";
+    if (fs.existsSync(currentDateFile)) {
+        const rawdata = fs.readFileSync(currentDateFile);
         state = JSON.parse(rawdata);
     } else if (fs.existsSync(directory + "chargeNumbers.json")) {
         const rawdata = fs.readFileSync(directory + "chargeNumbers.json");

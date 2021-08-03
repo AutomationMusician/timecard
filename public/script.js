@@ -1,13 +1,13 @@
 let chargeNumbers;
 let rows;
+let date = new Date();
 let id;
 let name;
 
 async function main() {
     await getUserData();
-    await load();
-    createHeader();
-    createTable();
+    setDate(new Date()); 
+    await onDateChange(); // triggers load, createHeader, and createTable
 }
 
 function getUrlVars() {
@@ -49,10 +49,26 @@ function createHeader() {
 }
 
 function createTable() {
+    document.getElementById("table").innerHTML = "";
     createHead();
     createBody();
     createFooter();
     calculate();
+}
+
+function setDate(date) {
+    const yyyy = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date);
+    const MM = new Intl.DateTimeFormat('en', { month: '2-digit' }).format(date);
+    const dd = new Intl.DateTimeFormat('en', { day: '2-digit' }).format(date);
+    const dateElement = document.getElementById("date");
+    dateElement.value = `${yyyy}-${MM}-${dd}`;
+}
+
+async function onDateChange() {
+    date = document.getElementById("date").value;
+    await load();
+    createHeader();
+    createTable();
 }
 
 function createHead() {
@@ -267,14 +283,8 @@ function cacheState() {
 }
 
 async function load() {
-    const options = {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ id })
-    }
-    const response = await fetch('/load', options);
+    console.log('loading ' + `/load/${id}/${date}`);
+    const response = await fetch(`/load/${id}/${date}`);
     const result = await response.json();
 
     if (result.chargeNumbers == null) {
@@ -302,7 +312,7 @@ async function save() {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ id, chargeNumbers, rows })
+        body: JSON.stringify({ id, chargeNumbers, rows, date })
     };
     const response = await fetch('/save', options);
     return await response.json();
@@ -316,12 +326,14 @@ function createTimeField(fieldStr, index, value) {
     input.id = fieldStr + index;
     input.onchange = calculate;
     const nowButton = document.createElement("button");
-    nowButton.onclick = function() { setNow(fieldStr, index) };
+    nowButton.onclick = function() { 
+        setNow(fieldStr, index);
+        calculate();
+    };
     nowButton.textContent = "now";
     td.append(input);
     td.append(document.createElement("br"));
     td.append(nowButton);
-
     return td;
 }
 
