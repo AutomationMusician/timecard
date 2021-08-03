@@ -1,8 +1,9 @@
 let chargeNumbers;
 let rows;
-let date = new Date();
+let date;
 let id;
 let name;
+let editsEnabled = true;
 
 async function main() {
     await getUserData();
@@ -57,15 +58,21 @@ function createTable() {
 }
 
 function setDate(date) {
+    const dateElement = document.getElementById("date");
+    dateElement.value = formateDate(date);
+    date = formateDate(date);
+}
+
+function formateDate(date) {
     const yyyy = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date);
     const MM = new Intl.DateTimeFormat('en', { month: '2-digit' }).format(date);
     const dd = new Intl.DateTimeFormat('en', { day: '2-digit' }).format(date);
-    const dateElement = document.getElementById("date");
-    dateElement.value = `${yyyy}-${MM}-${dd}`;
+    return `${yyyy}-${MM}-${dd}`;
 }
 
 async function onDateChange() {
     date = document.getElementById("date").value;
+    editsEnabled = (date == formateDate(new Date()));
     await load();
     createHeader();
     createTable();
@@ -88,12 +95,14 @@ function createHead() {
         const del = document.createElement("button");
         del.textContent = "X"
         del.style.backgroundColor = "red";
+        del.disabled = !editsEnabled;
         del.onclick = function() { deleteColumn(i) };
         const input = document.createElement("input");
         input.id = "chargeNum"+i;
         input.type = "text";
         input.value = chargeNumbers[i];
         input.className = "chargeNumHead";
+        input.disabled = !editsEnabled;
         td.append(del);
         td.append(input);
         theadRow.append(td);
@@ -112,9 +121,10 @@ function createBody() {
         del.onclick = function() { deleteRow(i) };
         del.textContent = "X";
         del.style.backgroundColor = "red";
+        del.disabled = !editsEnabled;
         delCell.append(del);
-        const start = createTimeField("start", i, rows[i].start);
-        const end = createTimeField("end", i, rows[i].end);
+        const start = createTimeField("start", i, rows[i].start, editsEnabled);
+        const end = createTimeField("end", i, rows[i].end, editsEnabled);
         const hours = document.createElement("td");
         hours.id = "hours"+i;
 
@@ -131,6 +141,7 @@ function createBody() {
             input.id = "charge" + i + "," + j;
             input.onchange = calculate;
             input.value = j;
+            input.disabled = !editsEnabled;
             if (rows[i].chargeNumbers.includes(j))
                 input.checked = true;
             td.append(input);
@@ -192,6 +203,7 @@ function createFooter() {
         const li = document.createElement("li");
         const button = document.createElement("button");
         button.textContent = buttons[i].text;
+        button.disabled = !editsEnabled;
         button.onclick = buttons[i].onClick; 
         li.append(button);
         buttonsUl.append(li);
@@ -283,7 +295,6 @@ function cacheState() {
 }
 
 async function load() {
-    console.log('loading ' + `/load/${id}/${date}`);
     const response = await fetch(`/load/${id}/${date}`);
     const result = await response.json();
 
@@ -318,14 +329,16 @@ async function save() {
     return await response.json();
 }
 
-function createTimeField(fieldStr, index, value) {
+function createTimeField(fieldStr, index, value, enabled) {
     const td = document.createElement("td");
     const input = document.createElement("input");
     input.type = "time"
     input.value = value;
     input.id = fieldStr + index;
     input.onchange = calculate;
+    input.disabled = !editsEnabled;
     const nowButton = document.createElement("button");
+    nowButton.disabled = !editsEnabled;
     nowButton.onclick = function() { 
         setNow(fieldStr, index);
         calculate();
