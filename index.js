@@ -16,6 +16,13 @@ if (!fs.existsSync("data")) {
     fs.mkdirSync("data");
 }
 
+function formateDate(date) {
+    const yyyy = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date);
+    const MM = new Intl.DateTimeFormat('en', { month: '2-digit' }).format(date);
+    const dd = new Intl.DateTimeFormat('en', { day: '2-digit' }).format(date);
+    return `${yyyy}-${MM}-${dd}`;
+}
+
 app.post('/save', async (request, response) => {
     const directory = "data/" + request.body.id + "/";
     if (!fs.existsSync(directory)) {
@@ -26,21 +33,27 @@ app.post('/save', async (request, response) => {
         chargeNumbers: request.body.chargeNumbers,
         rows: request.body.rows
     };
-    fs.writeFile(directory + request.body.date + ".json", JSON.stringify(data, null, 4), (err) => {
-        if (err) { 
-            throw err;
-        } else {
-            console.log(request.body.date + ".json file is created successfully.");
-            fs.writeFile(directory + "chargeNumbers.json", JSON.stringify(request.body.chargeNumbers, null, 4), (err) => {
-                if (err) { 
-                    throw err;
-                } else {
-                    console.log("chargeNumbers.json file is created successfully.");
-                    response.json({ status: "success" });
-                }
-            });
-        }
-    });
+    if (request.body.date === formateDate(new Date())) {
+        fs.writeFile(directory + request.body.date + ".json", JSON.stringify(data, null, 4), (err) => {
+            if (err) { 
+                throw err;
+            } else {
+                console.log(request.body.date + ".json file is created successfully.");
+                fs.writeFile(directory + "chargeNumbers.json", JSON.stringify(request.body.chargeNumbers, null, 4), (err) => {
+                    if (err) { 
+                        throw err;
+                    } else {
+                        console.log("chargeNumbers.json file is created successfully.");
+                        response.json({ status: "success" });
+                    }
+                });
+            }
+        });
+    }
+    else {
+        console.error("Save refused. Cannot save if the provided date is not today.");
+        response.status(400).json({ status: "failure" });
+    }
     
 });
 
