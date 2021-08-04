@@ -22,14 +22,7 @@ function getUrlVars() {
 async function getUserData() {
     id = getUrlVars()["id"];
     if (id != null) {
-        const options = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ _id: id })
-        };
-        const response = await fetch('/getUser', options);
+        const response = await fetch(`/getUser/${id}`);
         const json = await response.json();
         if (json.success)
             name = json.name;
