@@ -3,7 +3,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 2999;
 app.listen(PORT, () => console.log('listening on port ' + PORT));
 app.use(express.static('public'));
 app.use(express.json());
@@ -55,7 +55,7 @@ app.get('/load/:id/:date', async (request, response) => {
     const directory = "data/" + request.params.id + "/";
     const currentDateFile = directory + request.params.date + ".json";
     if (fs.existsSync(currentDateFile)) {
-        fs.readFileSync(currentDateFile);
+        const rawdata = fs.readFileSync(currentDateFile);
         state = JSON.parse(rawdata);
     } else if (fs.existsSync(directory + "chargeNumbers.json")) {
         const rawdata = fs.readFileSync(directory + "chargeNumbers.json");
