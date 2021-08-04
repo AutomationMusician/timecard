@@ -22,7 +22,6 @@
   "homepage": "https://github.com/AutomationMusician/timecard#readme",
   "dependencies": {
     "express": "^4.17.1",
-    "fs": "0.0.1-security",
-    "nedb": "^1.8.0"
+    "fs": "0.0.1-security"
   }
 }
