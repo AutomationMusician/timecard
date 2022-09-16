@@ -2,8 +2,11 @@ const express = require('express');
 const fs = require('fs');
 const crypto = require('crypto');
 
-const app = express();
+const config = JSON.parse(fs.readFileSync("config.json", { encoding: "utf-8"}));
 const PORT = process.env.PORT || 2999;
+const PREV_DAY_WRITE_ENABLED = config["prevWriteDayEnabled"] || false;
+
+const app = express();
 app.listen(PORT, () => console.log('listening on port ' + PORT));
 app.use(express.static('public'));
 app.use(express.json());
@@ -26,20 +29,23 @@ app.post('/save', async (request, response) => {
         chargeNumbers: request.body.chargeNumbers,
         rows: request.body.rows
     };
-    if (request.body.date === formateDate(new Date())) {
+    const dayIsToday = request.body.date === formateDate(new Date());
+    if (PREV_DAY_WRITE_ENABLED || dayIsToday) {
         fs.writeFile(directory + request.body.date + ".json", JSON.stringify(data, null, 4), (err) => {
             if (err) { 
                 throw err;
             } else {
                 console.log(request.body.date + ".json file is created successfully.");
-                fs.writeFile(directory + "chargeNumbers.json", JSON.stringify(request.body.chargeNumbers, null, 4), (err) => {
-                    if (err) { 
-                        throw err;
-                    } else {
-                        console.log("chargeNumbers.json file is created successfully.");
-                        response.json({ status: "success" });
-                    }
-                });
+                if (dayIsToday) {
+                    fs.writeFile(directory + "chargeNumbers.json", JSON.stringify(request.body.chargeNumbers, null, 4), (err) => {
+                        if (err) { 
+                            throw err;
+                        } else {
+                            console.log("chargeNumbers.json file is created successfully.");
+                            response.json({ status: "success" });
+                        }
+                    });
+                }
             }
         });
     }
@@ -111,6 +117,17 @@ app.get('/getUser/:id', async (request, response) => {
         }
         else {
             response.json({ success: true, name: name });
+        }
+    });
+});
+
+app.get('/config', async (request, response) => {
+    fs.readFile("config.json", "utf8", (err, config) => {
+        if (err) {
+            response.status(500).json(err);
+        }
+        else {
+            response.json(JSON.parse(config));
         }
     });
 });

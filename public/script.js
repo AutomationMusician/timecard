@@ -4,9 +4,13 @@ let date;
 let id;
 let name;
 let editsEnabled = true;
+let config;
 
 async function main() {
-    await getUserData();
+    await Promise.all([
+        getConfig(),
+        getUserData()
+    ]);
     setDate(new Date()); 
     await onDateChange(); // triggers load, createHeader, and createTable
 }
@@ -17,6 +21,11 @@ function getUrlVars() {
         vars[key] = value;
     });
     return vars;
+}
+
+async function getConfig() {
+    const response = await fetch(`/config`);
+    config = await response.json();
 }
 
 async function getUserData() {
@@ -65,7 +74,7 @@ function formateDate(date) {
 
 async function onDateChange() {
     date = document.getElementById("date").value;
-    editsEnabled = (date == formateDate(new Date()));
+    editsEnabled = config["prevWriteDayEnabled"] || (date == formateDate(new Date()));
     await load();
     createHeader();
     createTable();
